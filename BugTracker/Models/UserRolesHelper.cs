@@ -2,6 +2,7 @@
 using Microsoft.AspNet.Identity.EntityFramework;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace BugTracker.Models
 {
@@ -21,7 +22,11 @@ namespace BugTracker.Models
             this.db = context;
 
         }
-            
+
+        public UserRolesHelper()
+        {
+        }
+
         public bool IsUserInRole(string userId, string roleName)
         {
             return userManager.IsInRole(userId, roleName);
@@ -32,33 +37,35 @@ namespace BugTracker.Models
             return userManager.GetRoles(userId);
         }
 
+        public IList<string> ListAbsentUserRoles(string userId)
+        {
+            var roles = roleManager.Roles.Where(r => r.Name != null).Select(r => r.Name).ToList();
+            var A
+        }
+
         public bool AddUserToRole(string userId, string roleName)
         {
             var result = userManager.AddToRole(userId, roleName);
             return result.Succeeded;
         }
-
         public bool RemoveUserFromRole(string userId, string roleName)
         {
             var result = userManager.RemoveFromRole(userId, roleName);
             return result.Succeeded;
-        }      
+        }
 
-        //public ICollection<UserDropDownViewModel> UsersinRole(string roleName)
-        //{
-        //    var userIDs = roleManager.FindByName(roleName).Users.Select(r => r.UserId);
-        //    return userManager.Users.Where(u => userIDs.Contains(u.Id)).Select(u =>
-        //     new UserDropDownViewModel { Id = u.Id, Name = u.DisplayName }).ToList();
-        //}
+        public IList<ApplicationUser> UsersinRole(string roleName)
+        {
+            var userIDs = roleManager.FindByName(roleName).Users.Select(r => r.UserId);
+            return userManager.Users.Where(u => userIDs.Contains(u.Id)).ToList();
+        }
 
+        public IList<ApplicationUser> UsersNotInRole(string roleName)
+        {
+            var userIDs = System.Web.Security.Roles.GetUsersInRole(roleName);
+            return userManager.Users.Where(u => !userIDs.Contains(u.Id)).ToList();
 
-
-
-
-
-
-
-
+        }
 
 
     }
