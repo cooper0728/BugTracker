@@ -3,6 +3,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using System;
 
 namespace BugTracker.Models
 {
@@ -39,8 +40,16 @@ namespace BugTracker.Models
 
         public IList<string> ListAbsentUserRoles(string userId)
         {
-            var roles = roleManager.Roles.Where(r => r.Name != null).Select(r => r.Name).ToList();
-            var A
+            var roles = db.Roles.Select(r=>r.Name).ToList();
+            var AbsentUserRoles = new List<string>();
+            foreach(var role in roles)
+            {
+                if (!IsUserInRole(userId, role))
+                {
+                    AbsentUserRoles.Add(role);
+                }
+            }
+            return AbsentUserRoles;
         }
 
         public bool AddUserToRole(string userId, string roleName)
@@ -58,6 +67,11 @@ namespace BugTracker.Models
         {
             var userIDs = roleManager.FindByName(roleName).Users.Select(r => r.UserId);
             return userManager.Users.Where(u => userIDs.Contains(u.Id)).ToList();
+        }
+
+        internal void AddUserToRole(string roleName)
+        {
+            throw new NotImplementedException();
         }
 
         public IList<ApplicationUser> UsersNotInRole(string roleName)

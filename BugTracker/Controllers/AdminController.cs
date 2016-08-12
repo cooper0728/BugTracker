@@ -18,50 +18,84 @@ namespace BugTracker.Controllers
         public ActionResult AdminDashboard()
         {
             var model = db.Users.ToList();
-            return View (model);
+            return View(model);
         }
 
         // GET: /Admin/EditUser
         // **** See Handout for Completed Example ****
         [Authorize(Roles = "Admin")]
-        public ActionResult EditUser (string id)
+        public ActionResult EditUser(string id)
         {
             var user = db.Users.Find(id);
-            AdminUserViewModel AdminModel = new AdminUserViewModel();
+            var roles = db.Roles.ToList();
+
             UserRolesHelper helper = new UserRolesHelper(db);
-            var selected = helper.ListUserRoles(id);
-            AdminModel.Roles = new MultiSelectList(db.Roles, "Name", "Name", selected);
+            var currentRoles = helper.ListUserRoles(id);
+           
+            //Create a list of roles that we are not assigned too.
+            var absentRoles = new List<string>();
+            foreach (var role in roles)
+            {
+                if(!helper.IsUserInRole(id, role.Name))
+                {
+                    absentRoles.Add(role.Name);
+                }    
+            }
+
+            AdminUserViewModel AdminModel = new AdminUserViewModel();
+            AdminModel.Roles = new MultiSelectList(currentRoles);
+            AdminModel.AbsentRoles = new MultiSelectList(absentRoles);
             AdminModel.User = user;
             return View(AdminModel);
         }
 
-        //Post/Edit
-        public ActionResult EditRole(string Id, List<string> SelectedRoles)
+        // POST: Add User Role
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public ActionResult AddRole(string AddId, List<string>SelectedAbsentRoles)
         {
+
             if (ModelState.IsValid)
             {
+                // Loop through roles, add each user to role
                 UserRolesHelper helper = new UserRolesHelper(db);
-                var user = db.Users.Find(Id);
-                //Add new roles
-                foreach (var role in SelectedRoles)
+                var user = db.Users.Find(AddId);
+                foreach(var role in SelectedAbsentRoles)
                 {
-                    //If Role does not already exist for user
-                    helper.AddUserToRole(Id, role);
+                    helper.AddUserToRole(AddId, role);
                 }
-
-                //REMOVE ROLES
-                //Loop through all roles
-                //if role not in SelectedRoles:
-                //helper.RemoveUserFromRole(Id,role)
 
                 db.Entry(user).State = EntityState.Modified;
                 db.Users.Attach(user);
                 db.SaveChanges();
-                return RedirectToAction("ListUsers");
+                return RedirectToAction("AdminDashboard");
+
             }
-                return View(Id);
+            return View(AddId);
+        }
 
+        // POST: Remove User Role
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public ActionResult RemoveRole(string RemoveId, List<string> SelectedCurrentRoles)
+        {
+            if (ModelState.IsValid)
+            {
+                // Loop through roles, remove each role from user
+                UserRolesHelper helper = new UserRolesHelper(db);
+                var user = db.Users.Find(RemoveId);
+                foreach (var role in SelectedCurrentRoles)
+                {
+                    helper.RemoveUserFromRole(RemoveId, role);
+                }
 
+                db.Entry(user).State = EntityState.Modified;
+                db.Users.Attach(user);
+                db.SaveChanges();
+                return RedirectToAction("AdminDashboard");
+
+            }
+            return View(RemoveId);
         }
     }
 }

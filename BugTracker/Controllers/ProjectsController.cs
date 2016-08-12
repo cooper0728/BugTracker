@@ -7,6 +7,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using BugTracker.Models;
+using BugTracker.Models.BugTracker.Models;
 
 namespace BugTracker.Controllers
 {
@@ -74,7 +75,30 @@ namespace BugTracker.Controllers
             {
                 return HttpNotFound();
             }
-            return View(project);
+
+
+            var user = db.Users.Find(id);
+            var roles = db.Projects.ToList();
+
+            UserRolesHelper helper = new UserRolesHelper(db);
+            var currentUsers = helper.ListUserRoles(id);
+
+            //Create a list of roles that we are not assigned too.
+            var absentUsers = new List<string>();
+            foreach (var role in roles)
+            {
+                if (!helper.IsUserInRole(id, role.Name))
+                {
+                    absentUsers.Add(role.Name);
+                }
+            }
+
+            ProjectViewModel ProjectModel = new ProjectViewModel();
+            ProjectModel.Users = new MultiSelectList(currentUsers);
+            ProjectModel.AbsentUsers = new MultiSelectList(absentUsers);
+            ProjectModel.Project = project;
+            return View(ProjectModel);
+            
         }
 
         // POST: Projects/Edit/5
