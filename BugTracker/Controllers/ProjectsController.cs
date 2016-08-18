@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using BugTracker.Models;
-using BugTracker.Models.BugTracker.Models;
 
 namespace BugTracker.Controllers
 {
@@ -50,7 +46,7 @@ namespace BugTracker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Create([Bind(Include = "Id,Name")] Project project)
+        public ActionResult Create([Bind(Include = "Id,Title,Description")] Project project)
         {
             if (ModelState.IsValid)
             {
@@ -62,7 +58,7 @@ namespace BugTracker.Controllers
             return View(project);
         }
 
-        // GET: Projects/Edit/5
+       //GET: Projects/Edit/5
         [Authorize(Roles = "Admin")]
         public ActionResult Edit(int? id)
         {
@@ -76,29 +72,20 @@ namespace BugTracker.Controllers
                 return HttpNotFound();
             }
 
-
-            var user = db.Users.Find(id);
-            var roles = db.Projects.ToList();
-
-            UserRolesHelper helper = new UserRolesHelper(db);
-            var currentUsers = helper.ListUserRoles(id);
-
-            //Create a list of roles that we are not assigned too.
-            var absentUsers = new List<string>();
-            foreach (var role in roles)
-            {
-                if (!helper.IsUserInRole(id, role.Name))
-                {
-                    absentUsers.Add(role.Name);
-                }
-            }
-
+            //var user = db.Users.Find(id);
             ProjectViewModel ProjectModel = new ProjectViewModel();
-            ProjectModel.Users = new MultiSelectList(currentUsers);
-            ProjectModel.AbsentUsers = new MultiSelectList(absentUsers);
+            ProjectUserHelper helper = new ProjectUserHelper(db);
             ProjectModel.Project = project;
+            var currentUsers = helper.ListUsers(id);
+            ProjectModel.Users = new MultiSelectList(currentUsers, "Id", "FirstName");
+
+            var absentUsers = helper.AbsentUsers(id);
+            ProjectModel.AbsentUsers = new MultiSelectList(absentUsers, "Id", "FirstName");
+
+
             return View(ProjectModel);
-            
+
+            //return View(project);
         }
 
         // POST: Projects/Edit/5
@@ -106,7 +93,7 @@ namespace BugTracker.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Name")] Project project)
+        public ActionResult Edit([Bind(Include = "Id,Title,Description")] Project project)
         {
             if (ModelState.IsValid)
             {
@@ -115,6 +102,52 @@ namespace BugTracker.Controllers
                 return RedirectToAction("Index");
             }
             return View(project);
+        }
+        //POST: Projects/Edit **Add User TO Project
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public ActionResult AddUser(int projectId, List<string> SelectedAbsentUsers)
+        {
+
+            if (ModelState.IsValid)
+            {
+                ProjectUserHelper helper = new ProjectUserHelper(db);
+                var project = db.Projects.Find(projectId);
+                //var user = db.Users.Find(userId);
+
+                foreach (var user in SelectedAbsentUsers)
+                {
+                    helper.AssignUser(user, projectId);
+                }
+
+                //db.Entry(User).State = EntityState.Modified;
+                db.Projects.Attach(project);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index");
+        }
+        //POST: Projects/Edit **Remove User FROM Project
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RemoveUser(int projectId, List<string> SelectedCurrentUsers)
+        {
+            if (ModelState.IsValid)
+            {
+                ProjectUserHelper helper = new ProjectUserHelper(db);
+                var project = db.Projects.Find(projectId);
+                //var user = db.Users.Find(userId);
+                foreach (var user in SelectedCurrentUsers)
+                {
+                    helper.RemoveUser(user, projectId);
+                }
+                //db.Entry(User).State = EntityState.Modified;
+                //db.Users.Remove(user);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View("Index");
         }
 
         // GET: Projects/Delete/5

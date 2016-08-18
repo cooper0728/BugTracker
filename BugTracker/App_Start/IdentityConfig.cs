@@ -15,36 +15,37 @@ using Microsoft.Owin.Security;
 using BugTracker.Models;
 using SendGrid;
 
+
 namespace BugTracker
 {
     public class EmailService : IIdentityMessageService
     {
-        public async Task SendAsync(IdentityMessage message)
+        public Task SendAsync(IdentityMessage message)
         {
             // Plug in your email service here to send an email.
             var apiKey = ConfigurationManager.AppSettings["SendGridAPIKey"];
             var from = ConfigurationManager.AppSettings["ContactEmail"];
 
-            SendGridMessage myMessage = new SendGridMessage();
-            myMessage.AddTo(message.Destination);
-            myMessage.From = new MailAddress(from);
-            myMessage.Subject = message.Subject;
-            myMessage.Html = message.Body;
+            //SendGridMessage myMessage = new SendGridMessage();
+            //myMessage.AddTo(message.Destination);
+            //myMessage.From = new MailAddress(from);
+            //myMessage.Subject = message.Subject;
+            //myMessage.Html = message.Body;
 
-            // Create a Web transport, using API Key
-            var transportWeb = new Web(apiKey);
-            // Send the email.
+            //Create a Web transport, using API Key
+            //var transportWeb = new Web(apiKey);
+            //Send the email.
             try
             {
-                await transportWeb.DeliverAsync(myMessage);
+              //transportWeb.DeliverAsync(myMessage);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                await Task.FromResult(0);
             }
+            return Task.FromResult(0);
         }
-
+    }
         public class SmsService : IIdentityMessageService
         {
             public Task SendAsync(IdentityMessage message)
@@ -123,7 +124,7 @@ namespace BugTracker
 
             public override Task<ClaimsIdentity> CreateUserIdentityAsync(ApplicationUser user)
             {
-                return user.GenerateUserIdentityAsync((ApplicationUserManager) UserManager);
+                return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
             }
 
             public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options,
@@ -134,7 +135,7 @@ namespace BugTracker
             }
 
 
-    
+
 
 
 
@@ -144,4 +145,4 @@ namespace BugTracker
 
         }
     }
-}
+

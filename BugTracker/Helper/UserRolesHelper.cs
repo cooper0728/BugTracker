@@ -33,7 +33,7 @@ namespace BugTracker.Models
             return userManager.IsInRole(userId, roleName);
         }
 
-        public IList<string> ListUserRoles(string userId)
+        public IList<string> AssignedUserRoles(string userId)
         {
             return userManager.GetRoles(userId);
         }

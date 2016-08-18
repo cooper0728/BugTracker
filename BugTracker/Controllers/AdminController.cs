@@ -30,7 +30,7 @@ namespace BugTracker.Controllers
             var roles = db.Roles.ToList();
 
             UserRolesHelper helper = new UserRolesHelper(db);
-            var currentRoles = helper.ListUserRoles(id);
+            var currentRoles = helper.AssignedUserRoles(id);
            
             //Create a list of roles that we are not assigned too.
             var absentRoles = new List<string>();
@@ -62,6 +62,7 @@ namespace BugTracker.Controllers
                 var user = db.Users.Find(AddId);
                 foreach(var role in SelectedAbsentRoles)
                 {
+                    //helper is the object of UserRolesHelper
                     helper.AddUserToRole(AddId, role);
                 }
 
@@ -71,7 +72,7 @@ namespace BugTracker.Controllers
                 return RedirectToAction("AdminDashboard");
 
             }
-            return View(AddId);
+            return View("AdminDashboard");
         }
 
         // POST: Remove User Role
@@ -95,7 +96,7 @@ namespace BugTracker.Controllers
                 return RedirectToAction("AdminDashboard");
 
             }
-            return View(RemoveId);
+            return View("AdminDashboard");
         }
     }
 }

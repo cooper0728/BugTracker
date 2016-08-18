@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -13,24 +12,24 @@ namespace BugTracker.Controllers
     [Authorize]
     public class ManageController : Controller
     {
-        private EmailService.ApplicationSignInManager _signInManager;
-        private EmailService.ApplicationUserManager _userManager;
+        private ApplicationSignInManager _signInManager;
+        private ApplicationUserManager _userManager;
 
         public ManageController()
         {
         }
 
-        public ManageController(EmailService.ApplicationUserManager userManager, EmailService.ApplicationSignInManager signInManager)
+        public ManageController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
         }
 
-        public EmailService.ApplicationSignInManager SignInManager
+        public ApplicationSignInManager SignInManager
         {
             get
             {
-                return _signInManager ?? HttpContext.GetOwinContext().Get<EmailService.ApplicationSignInManager>();
+                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
             private set 
             { 
@@ -38,11 +37,11 @@ namespace BugTracker.Controllers
             }
         }
 
-        public EmailService.ApplicationUserManager UserManager
+        public ApplicationUserManager UserManager
         {
             get
             {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<EmailService.ApplicationUserManager>();
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
             }
             private set
             {
